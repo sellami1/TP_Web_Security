@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport d'Audit de Sécurité — WebGoatEnhanced</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0d1117;
+    --surface2: #131921;
+    --border: #1e2a38;
+    --border-glow: #1e3a5f;
+    --text: #c9d8e8;
+    --text-dim: #5a7a96;
+    --text-bright: #e8f4ff;
+    --critical: #ff3b5c;
+    --critical-dim: #3d0f1a;
+    --critical-mid: #7a1a2e;
+    --high: #ff7e2e;
+    --high-dim: #2d1a08;
+    --medium: #f0c040;
+    --medium-dim: #2a2008;
+    --low: #3ecf8e;
+    --low-dim: #082014;
+    --info: #4ea8de;
+    --info-dim: #0a1e30;
+    --accent: #0f8fff;
+    --accent-glow: rgba(15, 143, 255, 0.15);
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --body: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.04) 2px,
+      rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Sidebar nav */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 0 20px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .sidebar-logo .logo-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo .logo-title {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.2;
+  }
+
+  .nav-section {
+    padding: 0 12px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .nav-group-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 8px 8px 4px;
+    margin-top: 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    font-weight: 400;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+  }
+
+  .nav-link .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer {
+    padding: 16px 20px 0;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Main content */
+  .main {
+    margin-left: 220px;
+    padding: 0 0 80px;
+  }
+
+  /* Header hero */
+  .hero {
+    padding: 48px 48px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,59,92,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  .hero-title span {
+    color: var(--critical);
+  }
+
+  .hero-sub {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    font-weight: 300;
+    font-style: italic;
+    margin-bottom: 28px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 4px;
+    background: rgba(255,59,92,0.12);
+    border: 1px solid rgba(255,59,92,0.3);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--critical);
+    letter-spacing: 0.1em;
+  }
+
+  .hero-badge::before {
+    content: '⬤';
+    font-size: 8px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-card {
+    background: var(--surface);
+    padding: 24px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s;
+  }
+
+  .stat-card:hover { background: var(--surface2); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card.critical::before { background: var(--critical); }
+  .stat-card.high::before { background: var(--high); }
+  .stat-card.medium::before { background: var(--medium); }
+  .stat-card.low::before { background: var(--low); }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-card.critical .stat-label { color: var(--critical); }
+  .stat-card.high .stat-label { color: var(--high); }
+  .stat-card.medium .stat-label { color: var(--medium); }
+  .stat-card.low .stat-label { color: var(--low); }
+
+  .stat-number {
+    font-family: var(--display);
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card.critical .stat-number { color: var(--critical); }
+  .stat-card.high .stat-number { color: var(--high); }
+  .stat-card.medium .stat-number { color: var(--medium); }
+  .stat-card.low .stat-number { color: var(--low); }
+
+  .stat-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* Sections */
+  .section {
+    padding: 40px 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .section-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  /* Vulnerability table */
+  .vuln-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  .vuln-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .vuln-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(30,42,56,0.6);
+    vertical-align: middle;
+  }
+
+  .vuln-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .vuln-table code {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--info);
+    background: var(--info-dim);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* Severity badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .badge::before { content: '▲'; font-size: 7px; }
+
+  .badge-critical { background: var(--critical-dim); color: var(--critical); border: 1px solid var(--critical-mid); }
+  .badge-high { background: var(--high-dim); color: var(--high); border: 1px solid rgba(255,126,46,0.3); }
+  .badge-medium { background: var(--medium-dim); color: var(--medium); border: 1px solid rgba(240,192,64,0.25); }
+  .badge-low { background: var(--low-dim); color: var(--low); border: 1px solid rgba(62,207,142,0.25); }
+
+  /* Status tags */
+  .status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+  }
+
+  .status-fix { background: rgba(255,59,92,0.1); color: var(--critical); }
+  .status-ped { background: rgba(78,168,222,0.1); color: var(--info); }
+  .status-ver { background: rgba(240,192,64,0.1); color: var(--medium); }
+
+  /* Detail cards */
+  .detail-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .detail-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .detail-card:hover { border-color: var(--border-glow); }
+
+  .detail-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .detail-card-header:hover { background: rgba(255,255,255,0.02); }
+
+  .detail-card-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .detail-card-title {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+    flex: 1;
+  }
+
+  .detail-card-toggle {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+  }
+
+  .detail-card-body {
+    padding: 20px;
+    display: none;
+  }
+
+  .detail-card-body.open { display: block; }
+
+  .detail-card.crit-card { border-left: 3px solid var(--critical); }
+  .detail-card.high-card { border-left: 3px solid var(--high); }
+
+  .detail-section {
+    margin-bottom: 18px;
+  }
+
+  .detail-section:last-child { margin-bottom: 0; }
+
+  .detail-section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .detail-section p {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  pre {
+    background: #060a0e;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #a8d0f0;
+  }
+
+  pre .keyword { color: #79b8ff; }
+  pre .string { color: #9ecbff; }
+  pre .comment { color: #4a6a84; font-style: italic; }
+  pre .type { color: #b392f0; }
+  pre .method { color: #79d4ff; }
+
+  .location-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--info);
+    background: var(--info-dim);
+    padding: 6px 12px;
+    border-radius: 4px;
+    display: inline-block;
+    text-decoration: none;
+    border: 1px solid rgba(78,168,222,0.2);
+    transition: border-color 0.15s;
+    word-break: break-all;
+  }
+
+  .location-link:hover { border-color: rgba(78,168,222,0.5); }
+
+  .rec-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .rec-list li {
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+    align-items: flex-start;
+  }
+
+  .rec-list li::before {
+    content: '→';
+    color: var(--low);
+    font-family: var(--mono);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Secrets section */
+  .secrets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .secret-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .secret-count {
+    font-family: var(--display);
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--medium);
+    flex-shrink: 0;
+    min-width: 50px;
+  }
+
+  .secret-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .secret-type {
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* CVE table */
+  .cve-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  .cve-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cve-table td {
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(30,42,56,0.6);
+    font-size: 12.5px;
+    vertical-align: middle;
+  }
+
+  .cve-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .cve-id {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--critical);
+  }
+
+  /* Action plan */
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .action-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+  }
+
+  .action-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .action-card-icon {
+    font-size: 18px;
+  }
+
+  .action-card-title {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .action-card-delay {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-left: auto;
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  .action-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .action-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .action-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--info-dim);
+    border: 1px solid rgba(78,168,222,0.2);
+    width: 20px; height: 20px;
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .action-text {
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* OWASP tag */
+  .owasp {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--accent);
+    background: var(--info-dim);
+    padding: 2px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+
+  /* Tools breakdown */
+  .tools-breakdown {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .tool-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .tool-chip-name {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .tool-chip-count {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-bright);
+  }
+
+  /* Chart-like bar */
+  .risk-bar-wrap {
+    margin-bottom: 20px;
+  }
+
+  .risk-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .risk-bar-track {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .risk-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(.25,.46,.45,.94);
+  }
+
+  /* Progress ring total */
+  .total-ring {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .ring-svg { flex-shrink: 0; }
+
+  .ring-labels { flex: 1; }
+
+  .ring-label-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+  }
+
+  .ring-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .ring-label-name { color: var(--text-dim); flex: 1; font-size: 12px; }
+  .ring-label-val { font-family: var(--mono); font-size: 12px; color: var(--text-bright); }
+  .ring-label-pct { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+
+  .ring-total-label {
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
+
+  /* Fade-in animation */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; transform: none; }
+  }
+
+  .fade-in:nth-child(1) { animation-delay: 0.05s; }
+  .fade-in:nth-child(2) { animation-delay: 0.1s; }
+  .fade-in:nth-child(3) { animation-delay: 0.15s; }
+  .fade-in:nth-child(4) { animation-delay: 0.2s; }
+
+  /* Responsive tweaks */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .hero { padding: 28px 20px; }
+    .section { padding: 28px 20px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .action-grid { grid-template-columns: 1fr; }
+    .secrets-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-label">Rapport</div>
+    <div class="logo-title">Audit Sécurité<br>WebGoatEnhanced</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-group-label">Navigation</div>
+    <a class="nav-link active" href="#resume"><span class="dot"></span>Résumé exécutif</a>
+    <a class="nav-link" href="#vulns"><span class="dot"></span>Tableau des vulnérabilités</a>
+    <a class="nav-link" href="#critiques"><span class="dot"></span>Détail critiques</a>
+    <a class="nav-link" href="#dependances"><span class="dot"></span>Dépendances / CVE</a>
+    <a class="nav-link" href="#secrets"><span class="dot"></span>Secrets & Misconfigs</a>
+    <a class="nav-link" href="#actions"><span class="dot"></span>Plan d'action</a>
+  </div>
+  <div class="sidebar-footer">
+    Équipe DevOps M2<br>2026-04-02
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- HERO -->
+  <section class="hero fade-in" id="resume">
+    <div class="hero-meta">// RAPPORT D'AUDIT DE SÉCURITÉ — v1.0</div>
+    <h1 class="hero-title">WebGoat<span>Enhanced</span></h1>
+    <p class="hero-sub">Application pédagogique — Audit complet multi-outils</p>
+    <div class="hero-badge">DÉPLOIEMENT CONDITIONNÉ</div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card critical fade-in">
+      <div class="stat-label">Critiques</div>
+      <div class="stat-number">56</div>
+      <div class="stat-desc">SpotBugs priority=1</div>
+    </div>
+    <div class="stat-card high fade-in">
+      <div class="stat-label">Hautes</div>
+      <div class="stat-number">9</div>
+      <div class="stat-desc">Semgrep ERROR</div>
+    </div>
+    <div class="stat-card medium fade-in">
+      <div class="stat-label">Moyennes</div>
+      <div class="stat-number">229</div>
+      <div class="stat-desc">Semgrep WARNING + SpotBugs</div>
+    </div>
+    <div class="stat-card low fade-in">
+      <div class="stat-label">Basses</div>
+      <div class="stat-number">94</div>
+      <div class="stat-desc">Gitleaks détections</div>
+    </div>
+  </div>
+
+  <!-- SECTION: RÉSUMÉ OUTILS -->
+  <section class="section" id="resume-outils">
+    <div class="section-header">
+      <span class="section-id">01</span>
+      <h2 class="section-title">Vue d'ensemble</h2>
+    </div>
+
+    <div class="total-ring">
+      <svg class="ring-svg" width="110" height="110" viewBox="0 0 110 110">
+        <circle cx="55" cy="55" r="44" fill="none" stroke="#131921" stroke-width="12"/>
+        <!-- Critical: 56/388 = 14.4% = 40.2deg, circumference=276.5 -->
+        <circle cx="55" cy="55" r="44" fill="none" stroke="#ff3b5c" stroke-width="12"
+          stroke-dasharray="39.7 276.5" stroke-dashoffset="69.1" stroke-linecap="butt"/>
+        <!-- High: 9/388 = 2.3% = 6.4deg -->
+        <circle cx="55" cy="55" r="44" fill="none" stroke="#ff7e2e" stroke-width="12"
+          stroke-dasharray="6.4 276.5" stroke-dashoffset="29.4" stroke-linecap="butt"/>
+        <!-- Medium: 229/388 = 59% = 163deg -->
+        <circle cx="55" cy="55" r="44" fill="none" stroke="#f0c040" stroke-width="12"
+          stroke-dasharray="163 276.5" stroke-dashoffset="23" stroke-linecap="butt"/>
+        <!-- Low: 94/388 = 24.2% = 67.5deg -->
+        <circle cx="55" cy="55" r="44" fill="none" stroke="#3ecf8e" stroke-width="12"
+          stroke-dasharray="67.5 276.5" stroke-dashoffset="-140" stroke-linecap="butt"/>
+        <text x="55" y="50" text-anchor="middle" fill="#e8f4ff" font-family="Syne,sans-serif" font-size="18" font-weight="800">388</text>
+        <text x="55" y="65" text-anchor="middle" fill="#5a7a96" font-family="Share Tech Mono,monospace" font-size="8">FINDINGS</text>
+      </svg>
+      <div class="ring-labels">
+        <div class="ring-label-item"><span class="ring-dot" style="background:var(--critical)"></span><span class="ring-label-name">Critiques</span><span class="ring-label-val">56</span><span class="ring-label-pct"> · 14%</span></div>
+        <div class="ring-label-item"><span class="ring-dot" style="background:var(--high)"></span><span class="ring-label-name">Hautes</span><span class="ring-label-val">9</span><span class="ring-label-pct"> · 2%</span></div>
+        <div class="ring-label-item"><span class="ring-dot" style="background:var(--medium)"></span><span class="ring-label-name">Moyennes</span><span class="ring-label-val">229</span><span class="ring-label-pct"> · 59%</span></div>
+        <div class="ring-label-item"><span class="ring-dot" style="background:var(--low)"></span><span class="ring-label-name">Basses</span><span class="ring-label-val">94</span><span class="ring-label-pct"> · 24%</span></div>
+      </div>
+    </div>
+
+    <div class="tools-breakdown">
+      <div class="tool-chip">
+        <div><div class="tool-chip-name">SpotBugs / FindSecBugs</div><div class="tool-chip-count">256</div></div>
+      </div>
+      <div class="tool-chip">
+        <div><div class="tool-chip-name">Semgrep security-audit</div><div class="tool-chip-count">38</div></div>
+      </div>
+      <div class="tool-chip">
+        <div><div class="tool-chip-name">Semgrep OWASP Top 10</div><div class="tool-chip-count">20</div></div>
+      </div>
+      <div class="tool-chip">
+        <div><div class="tool-chip-name">Gitleaks</div><div class="tool-chip-count">94</div></div>
+      </div>
+    </div>
+
+    <div class="risk-bar-wrap">
+      <div class="risk-bar-label"><span>Critiques</span><span>56 / 388</span></div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" style="width:14.4%;background:var(--critical)"></div></div>
+    </div>
+    <div class="risk-bar-wrap">
+      <div class="risk-bar-label"><span>Hautes</span><span>9 / 388</span></div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" style="width:2.3%;background:var(--high)"></div></div>
+    </div>
+    <div class="risk-bar-wrap">
+      <div class="risk-bar-label"><span>Moyennes</span><span>229 / 388</span></div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" style="width:59%;background:var(--medium)"></div></div>
+    </div>
+    <div class="risk-bar-wrap">
+      <div class="risk-bar-label"><span>Basses</span><span>94 / 388</span></div>
+      <div class="risk-bar-track"><div class="risk-bar-fill" style="width:24.2%;background:var(--low)"></div></div>
+    </div>
+  </section>
+
+  <!-- SECTION: TABLEAU VULNÉRABILITÉS -->
+  <section class="section" id="vulns">
+    <div class="section-header">
+      <span class="section-id">02</span>
+      <h2 class="section-title">Tableau des vulnérabilités</h2>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterTable('all', this)">Tout</button>
+      <button class="filter-btn" onclick="filterTable('CRITICAL', this)">Critiques</button>
+      <button class="filter-btn" onclick="filterTable('HIGH', this)">Hautes</button>
+      <button class="filter-btn" onclick="filterTable('MEDIUM', this)">Moyennes</button>
+      <button class="filter-btn" onclick="filterTable('fix', this)">À corriger</button>
+      <button class="filter-btn" onclick="filterTable('ped', this)">Pédagogiques</button>
+    </div>
+
+    <table class="vuln-table" id="vuln-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Type</th>
+          <th>OWASP</th>
+          <th>Sévérité</th>
+          <th>Outil</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-sev="CRITICAL" data-status="fix">
+          <td><code>V01</code></td>
+          <td>NoOpPasswordEncoder — mots de passe non hashés</td>
+          <td><span class="owasp">A02</span></td>
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>Manuel</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="CRITICAL" data-status="fix">
+          <td><code>V02</code></td>
+          <td>NoOpPasswordEncoder — WebWolf</td>
+          <td><span class="owasp">A02</span></td>
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>Manuel</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="HIGH" data-status="fix">
+          <td><code>V03</code></td>
+          <td>Stacktrace toujours exposée</td>
+          <td><span class="owasp">A05</span></td>
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>Manuel</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="HIGH" data-status="fix">
+          <td><code>V04</code></td>
+          <td>Actuator env/health/configprops exposés</td>
+          <td><span class="owasp">A05</span></td>
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>Manuel</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="HIGH" data-status="fix">
+          <td><code>V05</code></td>
+          <td><code>/actuator/**</code> en permitAll</td>
+          <td><span class="owasp">A01/A05</span></td>
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>Manuel</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="HIGH" data-status="fix">
+          <td><code>V06</code></td>
+          <td>SQL construite par concaténation (<code>CREATE SCHEMA</code>)</td>
+          <td><span class="owasp">A03</span></td>
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>Manuel</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="HIGH" data-status="fix">
+          <td><code>V07</code></td>
+          <td>Path traversal via nom de fichier (upload)</td>
+          <td><span class="owasp">A01</span></td>
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>SpotBugs + Semgrep</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr data-sev="HIGH" data-status="ped">
+          <td><code>V08</code></td>
+          <td>Command execution — <code>Runtime.exec()</code></td>
+          <td><span class="owasp">A03</span></td>
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>Semgrep custom</td>
+          <td><span class="status status-ped">Pédagogique</span></td>
+        </tr>
+        <tr data-sev="MEDIUM" data-status="ped">
+          <td><code>V09</code></td>
+          <td>Hash faible MD5</td>
+          <td><span class="owasp">A02</span></td>
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>Semgrep custom</td>
+          <td><span class="status status-ped">Pédagogique</span></td>
+        </tr>
+        <tr data-sev="MEDIUM" data-status="ped">
+          <td><code>V10</code></td>
+          <td>Secret hardcodé — <code>generic-api-key</code></td>
+          <td><span class="owasp">A02/A05</span></td>
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>Gitleaks</td>
+          <td><span class="status status-ped">Pédagogique</span></td>
+        </tr>
+        <tr data-sev="MEDIUM" data-status="ped">
+          <td><code>V11</code></td>
+          <td>JWT en clair dans le code source</td>
+          <td><span class="owasp">A07</span></td>
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>Gitleaks</td>
+          <td><span class="status status-ped">Pédagogique</span></td>
+        </tr>
+        <tr data-sev="MEDIUM" data-status="fix">
+          <td><code>V12</code></td>
+          <td>Pseudorandom prédictible</td>
+          <td><span class="owasp">A02</span></td>
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>SpotBugs</td>
+          <td><span class="status status-ver">À vérifier</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SECTION: DÉTAIL CRITIQUES -->
+  <section class="section" id="critiques">
+    <div class="section-header">
+      <span class="section-id">03</span>
+      <h2 class="section-title">Détail des vulnérabilités critiques / hautes</h2>
+    </div>
+
+    <div class="detail-cards">
+
+      <!-- V01/V02 -->
+      <div class="detail-card crit-card">
+        <div class="detail-card-header" onclick="toggleCard(this)">
+          <span class="detail-card-id">V01 / V02</span>
+          <span class="badge badge-critical">CRITICAL</span>
+          <span class="detail-card-title">NoOpPasswordEncoder — mots de passe non hashés</span>
+          <span class="detail-card-toggle">+</span>
+        </div>
+        <div class="detail-card-body">
+          <div class="detail-section">
+            <div class="detail-section-label">Description</div>
+            <p>Le provider de mots de passe utilise <code>NoOpPasswordEncoder</code> — les mots de passe sont stockés et comparés en clair. En cas de dump de base de données ou de fuite de logs, tous les comptes sont immédiatement compromis.</p>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Preuve</div>
+<pre><span class="keyword">@Bean</span>
+<span class="keyword">public</span> <span class="type">NoOpPasswordEncoder</span> <span class="method">passwordEncoder</span>() {
+  <span class="keyword">return</span> (<span class="type">NoOpPasswordEncoder</span>) <span class="type">NoOpPasswordEncoder</span>.<span class="method">getInstance</span>();
+}</pre>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Localisations</div>
+            <a class="location-link" href="#">container/WebSecurityConfig.java#L87</a><br><br>
+            <a class="location-link" href="#">webwolf/WebSecurityConfig.java#L85</a>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Recommandations</div>
+            <ul class="rec-list">
+              <li>Remplacer par <code>BCryptPasswordEncoder</code> ou <code>Argon2PasswordEncoder</code></li>
+              <li>Utiliser <code>PasswordEncoderFactories.createDelegatingPasswordEncoder()</code></li>
+              <li>Migrer les hashes existants (prefixe <code>{bcrypt}</code>)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- V03/V04/V05 -->
+      <div class="detail-card high-card">
+        <div class="detail-card-header" onclick="toggleCard(this)">
+          <span class="detail-card-id">V03 / V04 / V05</span>
+          <span class="badge badge-high">HIGH</span>
+          <span class="detail-card-title">Mauvaise configuration d'erreurs et endpoints admin</span>
+          <span class="detail-card-toggle">+</span>
+        </div>
+        <div class="detail-card-body">
+          <div class="detail-section">
+            <div class="detail-section-label">Description</div>
+            <p>Stacktrace forcée en réponse HTTP (<code>include-stacktrace=always</code>), endpoints Actuator sensibles exposés, et règle de sécurité qui autorise <code>/actuator/**</code> sans authentification. Surface d'attaque élargie + fuite de configuration interne.</p>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Localisations</div>
+            <a class="location-link" href="#">application-webgoat.properties#L1</a><br><br>
+            <a class="location-link" href="#">application-webgoat.properties#L68</a><br><br>
+            <a class="location-link" href="#">container/WebSecurityConfig.java#L43</a>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Recommandations</div>
+            <ul class="rec-list">
+              <li>Passer <code>server.error.include-stacktrace=never</code></li>
+              <li>Restreindre : <code>management.endpoints.web.exposure.include=health,info</code></li>
+              <li>Supprimer <code>permitAll</code> sur <code>/actuator/**</code> et protéger par rôle admin</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- V06 -->
+      <div class="detail-card high-card">
+        <div class="detail-card-header" onclick="toggleCard(this)">
+          <span class="detail-card-id">V06</span>
+          <span class="badge badge-high">HIGH</span>
+          <span class="detail-card-title">Injection SQL — DDL construit par concaténation</span>
+          <span class="detail-card-toggle">+</span>
+        </div>
+        <div class="detail-card-body">
+          <div class="detail-section">
+            <div class="detail-section-label">Description</div>
+            <p>Construction dynamique d'une requête SQL DDL avec le <code>username</code> utilisateur sans échappement. Si la validation d'entrée est contournée, un attaquant peut injecter du SQL arbitraire.</p>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Preuve</div>
+<pre>jdbcTemplate.<span class="method">execute</span>(
+  <span class="string">"CREATE SCHEMA \""</span> + webGoatUser.<span class="method">getUsername</span>() + <span class="string">"\" authorization dba"</span>
+);</pre>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Localisation</div>
+            <a class="location-link" href="#">container/users/UserService.java#L53</a>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Recommandations</div>
+            <ul class="rec-list">
+              <li>Validation whitelist stricte : <code>^[a-zA-Z0-9_]{1,32}$</code></li>
+              <li>Éviter la concaténation SQL dans les DDL</li>
+              <li>Encapsuler et échapper via API dédiée</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- V07 -->
+      <div class="detail-card high-card">
+        <div class="detail-card-header" onclick="toggleCard(this)">
+          <span class="detail-card-id">V07</span>
+          <span class="badge badge-high">HIGH</span>
+          <span class="detail-card-title">Path traversal — upload de fichier</span>
+          <span class="detail-card-toggle">+</span>
+        </div>
+        <div class="detail-card-body">
+          <div class="detail-section">
+            <div class="detail-section-label">Description</div>
+            <p>Le nom de fichier fourni par l'utilisateur est résolu sans normalisation ni contrôle de préfixe. Un payload contenant <code>../</code> peut permettre d'écrire hors du répertoire cible.</p>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Preuve</div>
+<pre><span class="keyword">var</span> destinationFile = destinationDir.<span class="method">toPath</span>()
+    .<span class="method">resolve</span>(multipartFile.<span class="method">getOriginalFilename</span>());
+<span class="type">Files</span>.<span class="method">copy</span>(is, destinationFile); <span class="comment">// ⚠ pas de contrôle</span></pre>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Localisation</div>
+            <a class="location-link" href="#">webwolf/FileServer.java#L75</a>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-label">Recommandations</div>
+            <ul class="rec-list">
+              <li>Appeler <code>.normalize()</code> sur le chemin résolu</li>
+              <li>Vérifier que le chemin commence bien par le répertoire base</li>
+              <li>Refuser les noms contenant <code>..</code>, séparateurs ou chemins absolus</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION: CVE / DÉPENDANCES -->
+  <section class="section" id="dependances">
+    <div class="section-header">
+      <span class="section-id">04</span>
+      <h2 class="section-title">Analyse des dépendances — CVE</h2>
+    </div>
+
+    <p style="font-size:12.5px;color:var(--text-dim);margin-bottom:18px;">⚠ Aucun rapport JSON OWASP Dependency-Check présent dans <code>audit-output/dependency-check/</code>. Les CVE ci-dessous proviennent du fichier de suppression.</p>
+
+    <table class="cve-table">
+      <thead>
+        <tr>
+          <th>CVE</th>
+          <th>Composant</th>
+          <th>Version vulnérable</th>
+          <th>Version cible</th>
+          <th>État</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="cve-id">CVE-2021-43859</span></td>
+          <td><code>xstream:1.4.5</code></td>
+          <td><span class="badge badge-critical">1.4.5</span></td>
+          <td><code>≥ 1.4.18</code></td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr>
+          <td><span class="cve-id">CVE-2013-7285</span></td>
+          <td><code>xstream:1.4.5</code></td>
+          <td><span class="badge badge-critical">1.4.5</span></td>
+          <td>Version maintenue récente</td>
+          <td><span class="status status-fix">À corriger</span></td>
+        </tr>
+        <tr>
+          <td><span class="cve-id">CVE-2022-22978</span></td>
+          <td><code>spring-boot-starter-security</code></td>
+          <td><span class="badge badge-medium">2.7.1</span></td>
+          <td><code>3.5.6</code> (parent actuel)</td>
+          <td><span class="status status-ver">Déjà mitigé — à vérifier</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:20px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:5px;font-family:var(--mono);font-size:11.5px;color:var(--text-dim);">
+      <div style="color:var(--info);margin-bottom:6px;">// Action recommandée</div>
+      mvn org.owasp:dependency-check-maven:check -Dformat=JSON -DoutputDirectory=audit-output/dependency-check
+    </div>
+  </section>
+
+  <!-- SECTION: SECRETS -->
+  <section class="section" id="secrets">
+    <div class="section-header">
+      <span class="section-id">05</span>
+      <h2 class="section-title">Secrets & mauvaises configurations</h2>
+    </div>
+
+    <div class="secrets-grid">
+      <div class="secret-card">
+        <div class="secret-count">44</div>
+        <div>
+          <div class="secret-label">generic-api-key</div>
+          <div class="secret-type">Gitleaks · MEDIUM</div>
+        </div>
+      </div>
+      <div class="secret-card">
+        <div class="secret-count">42</div>
+        <div>
+          <div class="secret-label">JWT en clair</div>
+          <div class="secret-type">Gitleaks · MEDIUM</div>
+        </div>
+      </div>
+      <div class="secret-card">
+        <div class="secret-count">4</div>
+        <div>
+          <div class="secret-label">aws-access-token</div>
+          <div class="secret-type">Gitleaks · HIGH</div>
+        </div>
+      </div>
+      <div class="secret-card">
+        <div class="secret-count">4</div>
+        <div>
+          <div class="secret-label">private-key</div>
+          <div class="secret-type">Gitleaks · HIGH</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <div class="detail-section-label" style="margin-bottom:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);">Mauvaises configurations notables</div>
+      <ul class="rec-list">
+        <li>Stacktrace exposée — <code>application-webgoat.properties#L1</code></li>
+        <li>Exposition actuator — <code>application-webgoat.properties#L68</code></li>
+        <li>Secret OAuth fallback <code>dummy</code> — <code>application-webgoat.properties#L71</code> &amp; <code>application-webwolf.properties#L54</code></li>
+      </ul>
+    </div>
+
+    <div style="margin-bottom:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);">Recommandations</div>
+    <ul class="rec-list">
+      <li>Isoler strictement les leçons vulnérables du socle runtime de démonstration</li>
+      <li>Basculer tous les secrets vers variables d'environnement / secret manager</li>
+      <li>Ajouter une politique pre-commit + CI (Gitleaks + Semgrep) avec blocage sur sévérité HIGH/CRITICAL</li>
+    </ul>
+  </section>
+
+  <!-- SECTION: PLAN D'ACTION -->
+  <section class="section" id="actions">
+    <div class="section-header">
+      <span class="section-id">06</span>
+      <h2 class="section-title">Plan d'action</h2>
+    </div>
+
+    <div class="action-grid">
+      <div class="action-card">
+        <div class="action-card-header">
+          <span class="action-card-icon">⚡</span>
+          <span class="action-card-title">Quick Wins</span>
+          <span class="action-card-delay">1–3 jours</span>
+        </div>
+        <ul class="action-list">
+          <li>
+            <span class="action-num">1</span>
+            <span class="action-text">Remplacer <code>NoOpPasswordEncoder</code> par BCrypt/Argon2</span>
+          </li>
+          <li>
+            <span class="action-num">2</span>
+            <span class="action-text">Fermer l'exposition <code>/actuator/**</code> et désactiver les stacktraces en réponse</span>
+          </li>
+          <li>
+            <span class="action-num">3</span>
+            <span class="action-text">Corriger l'upload pour neutraliser le path traversal</span>
+          </li>
+          <li>
+            <span class="action-num">4</span>
+            <span class="action-text">Ajouter un gate CI/CD bloquant sur sévérité HIGH/CRITICAL</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="action-card">
+        <div class="action-card-header">
+          <span class="action-card-icon">🗓</span>
+          <span class="action-card-title">Actions planifiées</span>
+          <span class="action-card-delay">1–3 semaines</span>
+        </div>
+        <ul class="action-list">
+          <li>
+            <span class="action-num">1</span>
+            <span class="action-text">Mettre à jour <code>xstream</code> (actuellement <code>1.4.5</code>) et relancer un scan Dependency-Check</span>
+          </li>
+          <li>
+            <span class="action-num">2</span>
+            <span class="action-text">Séparer le code pédagogique vulnérable des composants plateforme déployables</span>
+          </li>
+          <li>
+            <span class="action-num">3</span>
+            <span class="action-text">Mettre en place un registre de faux positifs documenté (expiration + justification)</span>
+          </li>
+          <li>
+            <span class="action-num">4</span>
+            <span class="action-text">Ajouter des tests de sécurité automatiques (SAST + tests d'intégration de contrôle d'accès)</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // Toggle detail cards
+  function toggleCard(header) {
+    const body = header.nextElementSibling;
+    const toggle = header.querySelector('.detail-card-toggle');
+    const isOpen = body.classList.toggle('open');
+    toggle.textContent = isOpen ? '−' : '+';
+  }
+
+  // Filter table
+  function filterTable(filter, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const rows = document.querySelectorAll('#vuln-table tbody tr');
+    rows.forEach(row => {
+      if (filter === 'all') {
+        row.style.display = '';
+      } else if (filter === 'fix') {
+        row.style.display = row.dataset.status === 'fix' ? '' : 'none';
+      } else if (filter === 'ped') {
+        row.style.display = row.dataset.status === 'ped' ? '' : 'none';
+      } else {
+        row.style.display = row.dataset.sev === filter ? '' : 'none';
+      }
+    });
+  }
+
+  // Active nav on scroll
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Animate bars on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.risk-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0';
+      setTimeout(() => { bar.style.width = w; }, 200);
+    });
+  });
+</script>
+
+</body>
+</html>
