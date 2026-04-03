@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rapport d'Audit de Sécurité — WebGoatEnhanced</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #080c10;
@@ -28,9 +28,9 @@
     --info-dim: #0a1e30;
     --accent: #0f8fff;
     --accent-glow: rgba(15, 143, 255, 0.15);
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Syne', sans-serif;
-    --body: 'DM Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Manrope', sans-serif;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -224,6 +224,43 @@
     content: '⬤';
     font-size: 8px;
     animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .repo-highlight {
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(62, 207, 142, 0.45);
+    background: linear-gradient(120deg, rgba(10, 30, 48, 0.9), rgba(8, 32, 20, 0.85));
+    color: var(--text-bright);
+    text-decoration: none;
+    box-shadow: 0 0 0 1px rgba(62, 207, 142, 0.18), 0 0 22px rgba(62, 207, 142, 0.12);
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .repo-highlight:hover {
+    transform: translateY(-1px);
+    border-color: rgba(62, 207, 142, 0.9);
+    box-shadow: 0 0 0 1px rgba(62, 207, 142, 0.35), 0 0 28px rgba(62, 207, 142, 0.2);
+  }
+
+  .repo-highlight-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--low);
+    text-transform: uppercase;
+  }
+
+  .repo-highlight-name {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1;
   }
 
   @keyframes pulse {
@@ -841,6 +878,10 @@
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .action-grid { grid-template-columns: 1fr; }
     .secrets-grid { grid-template-columns: 1fr; }
+    .repo-highlight {
+      width: 100%;
+      justify-content: center;
+    }
   }
 </style>
 </head>
@@ -862,7 +903,8 @@
     <a class="nav-link" href="#actions"><span class="dot"></span>Plan d'action</a>
   </div>
   <div class="sidebar-footer">
-    Équipe DevOps M2<br>2026-04-02
+    Équipe DevOps M2<br>2026-04-01<br>
+    <a class="location-link" href="https://github.com/WebGoat/WebGoat" target="_blank" rel="noopener noreferrer" style="margin-top:8px;padding:4px 8px;font-size:9px;">github.com/WebGoat/WebGoat</a>
   </div>
 </nav>
 
@@ -875,6 +917,10 @@
     <h1 class="hero-title">WebGoat<span>Enhanced</span></h1>
     <p class="hero-sub">Application pédagogique — Audit complet multi-outils</p>
     <div class="hero-badge">DÉPLOIEMENT CONDITIONNÉ</div>
+    <a class="repo-highlight" href="https://github.com/WebGoat/WebGoat" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le dépôt GitHub WebGoat">
+      <span class="repo-highlight-label">Dépôt GitHub</span>
+      <span class="repo-highlight-name">WebGoat/WebGoat ↗</span>
+    </a>
   </section>
 
   <!-- STATS -->
@@ -923,8 +969,8 @@
         <!-- Low: 94/388 = 24.2% = 67.5deg -->
         <circle cx="55" cy="55" r="44" fill="none" stroke="#3ecf8e" stroke-width="12"
           stroke-dasharray="67.5 276.5" stroke-dashoffset="-140" stroke-linecap="butt"/>
-        <text x="55" y="50" text-anchor="middle" fill="#e8f4ff" font-family="Syne,sans-serif" font-size="18" font-weight="800">388</text>
-        <text x="55" y="65" text-anchor="middle" fill="#5a7a96" font-family="Share Tech Mono,monospace" font-size="8">FINDINGS</text>
+        <text x="55" y="50" text-anchor="middle" fill="#e8f4ff" font-family="Space Grotesk,sans-serif" font-size="18" font-weight="800">388</text>
+        <text x="55" y="65" text-anchor="middle" fill="#5a7a96" font-family="IBM Plex Mono,monospace" font-size="8">FINDINGS</text>
       </svg>
       <div class="ring-labels">
         <div class="ring-label-item"><span class="ring-dot" style="background:var(--critical)"></span><span class="ring-label-name">Critiques</span><span class="ring-label-val">56</span><span class="ring-label-pct"> · 14%</span></div>
