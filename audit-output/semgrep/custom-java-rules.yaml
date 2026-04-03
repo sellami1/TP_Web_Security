@@ -1,0 +1,17 @@
+rules:
+  - id: java-dangerous-runtime-exec
+    patterns:
+      - pattern: Runtime.getRuntime().exec(...)
+    message: "Utilisation dangereuse de Runtime.exec() - risque de Command Injection"
+    languages: [java]
+    severity: ERROR
+
+  - id: java-weak-hash-md5-sha1
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance("MD5")
+          - pattern: MessageDigest.getInstance("SHA1")
+          - pattern: MessageDigest.getInstance("SHA-1")
+    message: "Algorithme de hash faible detecte (MD5/SHA1) - preferer SHA-256/SHA-512 + salt"
+    languages: [java]
+    severity: WARNING
