@@ -1,5 +1,6 @@
 # RAPPORT D'AUDIT DE SECURITE
 
+
 Application : WebGoatEnhanced  
 Date : 2026-04-02  
 Auditeurs : Equipe DevOps M2
